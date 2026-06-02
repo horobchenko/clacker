@@ -14,12 +14,21 @@ class ClackerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index():Response
+        public function index(): Response
     {
         return Inertia::render('Clacker/Index', [
-            'clackers' => Clacker::with('user:id,name')->latest()->get(),
+            // Eager load the user, count total likes, and check if the authenticated user liked it
+            'clackers' => Clacker::with('user:id,name')
+                ->withCount('likedByUsers')
+                ->latest()
+                ->get()
+                ->map(function ($clacker) {
+                    $clacker->is_liked = $clacker->likedByUsers->contains(auth()->id());
+                    return $clacker;
+                }),
         ]);
     }
+    
 
     /**
      * Show the form for creating a new resource.
@@ -87,4 +96,15 @@ class ClackerController extends Controller
  
         return redirect(route('clacker.index'));
     }
+        /**
+     * Toggle the like status for the specified clacker.
+     */
+    public function toggleLike(Clacker $clacker): \Illuminate\Http\RedirectResponse
+    {
+        // Automatically attach the like if it doesn't exist, or detach it if it does
+        auth()->user()->likedClackers()->toggle($clacker->id);
+
+        return back();
+}
+
 }
