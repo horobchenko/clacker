@@ -36,5 +36,8 @@ Route::get('/users', function(){
     $admin_contact = DB::table('users')->where('email', 'taylor@laravel.com')->first();
     return view('users', ['users' => User::all(), 'admin_contact' => $admin_contact]);
 })->middleware(['auth', 'verified'])->name('users');
+    // Route to toggle the like status of a specific clacker
+    Route::post('/clackers/{clacker}/like', [ClackerController::class, 'toggleLike'])
+        ->name('clackers.like');
 
 require __DIR__.'/auth.php';
